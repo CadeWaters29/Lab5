@@ -1,0 +1,92 @@
+#include <Arduino.h>
+#include <Pololu3piPlus32U4.h>
+#include <Pololu3piPlus32U4IMU.h>
+
+using namespace Pololu3piPlus32U4;
+
+OLED display;
+ButtonA buttonA;
+ButtonB buttonB;
+ButtonC buttonC;
+Motors motors;
+IMU imu;
+BumpSensors bumpSensors;
+LineSensors lineSensors;
+#include "TurnSensor.h"
+void turnLeft();
+void turnRight();
+void move();
+void Lab5();
+
+uint16_t sensorValues[5];
+// below is the setup function
+void setup(){
+  Serial.begin(9600);
+  display.init();
+  display.clear();
+  display.setLayout21x8();
+  turnSensorSetup();
+  bumpSensors.calibrate();
+  lineSensors.emittersOn();
+ // Initializes the OLED and turn sensors
+  display.gotoXY(1,1);
+  display.print("3/c Caden Waters");
+  //Displays my name on the top line of the OLED
+}
+// below is the loop function
+void loop(){
+  Lab5();
+}
+
+//Below is all of the functions that will be called
+void Lab5(){
+      if (buttonA.getSingleDebouncedPress()){
+      display.gotoXY(1,2);
+      display.print("Turning Right     ");
+      turnRight();
+      
+    }
+    else if (buttonB.getSingleDebouncedPress()){
+      display.gotoXY(1,2);
+      display.print("Turning Left      ");
+      turnLeft();
+      
+    }
+    else if (buttonC.getSingleDebouncedPress()){
+      display.gotoXY(1,2);
+      display.print("Moving Forward     ");
+      move();
+      
+    }
+    else {
+      display.gotoXY(1,2);
+      display.print("Waiting...    ");
+    }
+}
+void turnRight (){
+    turnSensorReset();
+    do {
+        turnSensorUpdate();
+        motors.setSpeeds(50,-50);
+    }
+    while (heading!=-90);
+    turnSensorReset();
+    motors.setSpeeds(0,0);
+}
+void turnLeft (){
+   turnSensorReset();
+   do {
+        turnSensorUpdate();
+        motors.setSpeeds(-50,50);
+   }
+    while (heading!=90);
+    turnSensorReset();
+    motors.setSpeeds(0,0);
+}
+void move(){
+   motors.setSpeeds(50,50);
+   bool sensedLine = lineSensors.readLineBlack(sensorValues);
+   while (sensedLine!=0){
+      motors.setSpeeds(0,0);
+    }
+}
